@@ -1,0 +1,11 @@
+[project]
+name = "sp-homomorphic-encryption"
+version = "0.1.0"
+description = ""
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=2.2.3",
+    "scikit-learn>=1.5.2",
+    "tenseal>=0.3.15",
+]
