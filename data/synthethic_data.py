@@ -47,17 +47,13 @@ prob_districts = [
     0.04
 ]
 
-total_districts = np.random.choice(districts, 100000, p=prob_districts)
-total_candidates = np.random.choice(candidates, 100000, p=prob_candidates)
+total_districts = np.random.choice(districts, 1000, p=prob_districts)
+total_candidates = np.random.choice(candidates, 1000, p=prob_candidates)
 
 df = pd.DataFrame({
-    "district": total_districts,
-    "candidate": total_candidates
+    "Districts": total_districts,
+    "Candidates": total_candidates
 })
 
 # save the pivot table to a csv file
 df.to_csv("votes.csv")
-
-#statistics
-print(df["candidate"].value_counts())
-print(df["district"].value_counts())
