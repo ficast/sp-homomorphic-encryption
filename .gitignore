@@ -5,6 +5,10 @@ build/
 dist/
 wheels/
 *.egg-info
+notebooks/outputs/*
+notebooks/keys/*
+outputs/*
+keys/*
 
 # Virtual environments
 .venv
