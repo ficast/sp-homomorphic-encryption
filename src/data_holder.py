@@ -1,94 +1,89 @@
 import tenseal as ts
-import pickle
 import pandas as pd
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder
-from utils import encode_data, decode_data
+from sklearn.preprocessing import OneHotEncoder
+from .utils import read_data, write_data, write_data_append
 
 
-class DataHolder:
+class AbstractDataHandler:
+    def __init__(self, context_file):
+        self.context = self.load_context(context_file)
+
+    def load_context(self, filename):
+        """
+        Load the context from file.
+        """
+        return ts.context_from(read_data(filename))
+
+
+class DataHolder(AbstractDataHandler):
     def __init__(self):
-        '''
+        """
         Initialize the data holder.
-        '''
+        """
         self.context = self.initialize_context()
         self.data = self.load_data()
 
     def initialize_context(self):
-        '''
+        """
         Initialize the context for CKKS encryption.
-        '''
+        """
         context = ts.context(
             ts.SCHEME_TYPE.CKKS,
             poly_modulus_degree=8192,
-            coeff_mod_bit_sizes=[60, 40, 40, 60]
+            coeff_mod_bit_sizes=[60, 40, 40, 60],
         )
         context.global_scale = 2**40
         context.generate_galois_keys()
         self.__secret_context__ = context.serialize(save_secret_key=True)
-        self.export_context(self.__secret_context__, "data/secret_context.txt")
-        
+        self.export_context(self.__secret_context__, "keys/secret.txt")
+
         context.make_context_public()
         self.__public_context__ = context.serialize()
-        self.export_context(self.__public_context__, "data/public_context.txt")
-        
+        self.export_context(self.__public_context__, "keys/public.txt")
+
         print("Context generated successfully!")
         return context
-    
-    
-    def load_context(self, filename):
-        '''
-        Load the context from file.
-        '''
-        return pd.read_csv(filename)
-    
-    
+
+    def load_data(self):
+        """
+        Load the data from file.
+        """
+        return pd.read_csv("data/votes.csv")
+
     def export_context(self, context, filename):
-        '''
+        """
         Export the context to a binary file using pickle.
-        '''
-        encode_data(filename, context)
+        """
+        write_data(filename, context)
         print("Context exported successfully!")
 
-
     def encrypt_data(self):
-        '''
+        """
         Encrypt a vector using CKKS encryption.
-        '''
-        encrypted_vector = ts.ckks_vector(self.context, self.data)
-        encode_data("data/encrypted_vector.txt", encrypted_vector.serialize())
-        return encrypted_vector
-    
+        """
 
-    def decrypt_vector(self, encrypted_vector):
-        '''
-        Decrypt a vector using CKKS encryption.
-        '''
-        return encrypted_vector.decrypt()
+        self.encoder = OneHotEncoder(sparse_output=False, dtype=int)
 
+        candidates = self.encoder.fit_transform(self.data[["Candidates"]])
 
+        for i, candidato in enumerate(candidates):
+            candidatos_enc = ts.ckks_vector(self.context, candidato)
+            if i == 0:
+                write_data("outputs/candidatos_enc.txt", candidatos_enc.serialize())
+            else:
+                write_data_append(
+                    "outputs/candidatos_enc.txt", candidatos_enc.serialize()
+                )
 
-class DataAnalyzer:
-    def __init__(self, public_context_file):
-        self.context = self.load_context(public_context_file)
-        
-        
-    def load_context(self, filename):
-        '''
-        Load the context from file.
-        '''
-        context = decode_data(filename)
-        return ts.context_from(context)
-    
-    def load_encrypted_data(self, filename):
-        '''
-        Load the encrypted data from file.
-        '''
-        return decode_data(filename)
+    def decrypt_vector(self):
+        m_proto = read_data("outputs/soma.txt")
+        m = ts.lazy_ckks_vector_from(m_proto)
+        m.link_context(self.context)
+        return m.decrypt()
 
+    def get_result(self):
+        candidates_mapping = dict(enumerate(self.encoder.categories_[0]))
+        number_of_votes = self.decrypt_vector()
 
-if __name__ == "__main__":
-    data_holder = DataHolder()
-    data_holder.encrypt_data()
-    
-    data_analyzer = DataAnalyzer("data/public_context.txt")
-    encrypted_data = data_analyzer.load_encrypted_data("data/encrypted_vector.txt")
+        for number, votes in enumerate(number_of_votes):
+            print(f"{candidates_mapping[number]}: {votes:.0f}")
