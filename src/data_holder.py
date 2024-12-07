@@ -32,8 +32,9 @@ class DataHolder(AbstractDataHandler):
             poly_modulus_degree=8192,
             coeff_mod_bit_sizes=[60, 40, 40, 60],
         )
-        context.global_scale = 2**40
         context.generate_galois_keys()
+        context.global_scale = 2**40
+
         self.__secret_context__ = context.serialize(save_secret_key=True)
         self.export_context(self.__secret_context__, "keys/secret.txt")
 
@@ -61,6 +62,7 @@ class DataHolder(AbstractDataHandler):
         """
         Encrypt a vector using CKKS encryption.
         """
+        self.context = self.load_context("keys/secret.txt")
 
         self.encoder = OneHotEncoder(sparse_output=False, dtype=int)
 

@@ -17,7 +17,7 @@ class DataAnalyzer(AbstractDataHandler):
     def calculate_result(self):
         candidates_list = []
 
-        for candidato in self.load_encrypted_data("outputs/candidatos_enc.txt") :
+        for candidato in self.load_encrypted_data("outputs/candidatos_enc.txt")[:-1]:
             candidatos_enc = ts.lazy_ckks_vector_from(candidato)
             candidatos_enc.link_context(self.context)
             candidates_list.append(candidatos_enc)
@@ -27,7 +27,7 @@ class DataAnalyzer(AbstractDataHandler):
     def export_sum(self):
         sum = ts.plain_tensor([0, 0, 0, 0, 0, 0, 0])
         results = self.calculate_result()
-        for i, candidato in enumerate(results[:-1]):
+        for candidato in results[:-1]:
             sum += candidato
 
         write_data("outputs/soma.txt", sum.serialize())
