@@ -60,4 +60,16 @@ def write_data_append(file_name: str, data: bytes):
 
     with open(file_name, 'ab') as f:
         # Write data with `@` separator
-        f.write(data + b'@')
+        f.write(b'@' + data)
+
+
+def print_section(title):
+    """Print a formatted section.
+    
+    Parameters:
+    - title (str): Title of the section.
+    """
+    print()
+    print("=" * 50)
+    print(f"{title.center(50)}")
+    print("=" * 50)
