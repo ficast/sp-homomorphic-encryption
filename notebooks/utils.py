@@ -17,7 +17,7 @@ def read_data(file_name: str) -> bytes:
 
 
 
-def read_data_split(file_name: str) -> bytes:
+def read_data_split(file_name: str) -> list[bytes]:
     with open(file_name, 'rb') as f:
         # values are separated by b'@'
         data = f.read().split(b'@')

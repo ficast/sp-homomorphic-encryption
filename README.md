@@ -11,3 +11,7 @@ In order to run this project we suggest to install UV package, and run:
 ```
 
 To run the project you can do:
+
+```bash
+    uv run main.py
+```
