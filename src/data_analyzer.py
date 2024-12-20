@@ -33,7 +33,7 @@ class DataAnalyzer(AbstractDataHandler):
         """
         candidates_list = []
 
-        for candidato in self.load_encrypted_data("outputs/candidatos_enc.txt")[:-1]:
+        for candidato in self.load_encrypted_data("outputs/candidatos_enc.txt"):
             # Create a lazy CKKS vector from the encrypted data
             candidatos_enc = ts.lazy_ckks_vector_from(candidato)
             # Link the context to the vector to enable operations
@@ -48,15 +48,17 @@ class DataAnalyzer(AbstractDataHandler):
 
         The sum is written to a file as a serialized tensor.
         """
-        # Initialize a plain tensor with zero values for summation
-        sum = ts.plain_tensor([0, 0, 0, 0, 0, 0, 0])
-        
         # Calculate results from encrypted candidates
         results = self.calculate_result()
 
-        for candidato in results[:-1]:
-            # Perform element-wise addition on encrypted vectors
-            sum += candidato
+        # Perform element-wise addition on encrypted vectors
+        for i, candidato in enumerate(results):
+            if i == 0:
+                #initialize sum with the first candidate
+                sum = candidato
+            else:
+                # Perform element-wise addition on encrypted vectors
+                sum += candidato
 
         # Write the serialized sum to the output file
-        write_data("outputs/soma.txt", sum.serialize())
+        write_data("outputs/sum_enc.txt", sum.serialize())
