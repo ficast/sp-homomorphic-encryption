@@ -1,4 +1,5 @@
 import tenseal as ts
+import sys
 from .utils import read_data_split, write_data
 from .data_holder import AbstractDataHandler
 
@@ -53,12 +54,23 @@ class DataAnalyzer(AbstractDataHandler):
 
         # Perform element-wise addition on encrypted vectors
         for i, candidato in enumerate(results):
+            # Calculate progress
+            progress = (i + 1) / 1000
+            length = int(10 * progress)
+            bar = "#" * length + "-" * (10 - length)
+
+            # Print the loading bar
+            sys.stdout.write(f"\r[{bar}] {int(progress * 100)}%")
+            sys.stdout.flush()
+
             if i == 0:
                 #initialize sum with the first candidate
                 sum = candidato
             else:
                 # Perform element-wise addition on encrypted vectors
                 sum += candidato
+
+        print()
 
         # Write the serialized sum to the output file
         write_data("outputs/sum_enc.txt", sum.serialize())
